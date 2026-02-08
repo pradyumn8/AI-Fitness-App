@@ -6,14 +6,15 @@ import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import Foodlog from './pages/Foodlog'
 import { useAppContext } from './contexts/AppContext'
-import Login from './pages/login'
+import Loading from './components/Loading'
+import Login from './pages/Login'
 
 const App = () => {
 
   const { user, isUserFetched, onboardingCompleted } = useAppContext()
 
   if (!user) {
-    return isUserFetched ? <Login /> : <p>Loading</p>
+    return isUserFetched ? <Login /> : <Loading/>
   }
 
   return (

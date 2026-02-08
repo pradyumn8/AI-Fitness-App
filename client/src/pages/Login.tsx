@@ -15,6 +15,23 @@ const Login = () => {
   const navigate = useNavigate()
   const { login, signup, user } = useAppContext()
 
+
+  const handleSubmit = async (e: React.FormEvent)=>{
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      if(state === 'login'){
+        await login({email, password})
+      }else{
+        await signup({username, email, password})
+      }
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setIsSubmitting(false)
+    }
+  }
+
   useEffect(() => {
     if (user) {
       navigate('/')
@@ -58,6 +75,10 @@ const Login = () => {
               </button>
             </div>
           </div>
+
+          <button type='submit' disabled={isSubmitting} className='login-button'>
+            {isSubmitting ? 'Submitting...' : state === 'login' ? 'Sign In' : 'Sign Up'}
+          </button>
 
           {/* Toggle between Login and Signup */}
           <p className='mt-6 text-sm text-center text-gray-600 dark:text-gray-400'>
