@@ -6,7 +6,7 @@ import mockApi from "../assets/mockApi";
 
 const AppContext = createContext(initialState);
 
-export const AppProvider = ({children}: {children: React.ReactNode}) => {
+export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const navigate = useNavigate();
     const [user, setUser] = useState<User>(null);
@@ -16,29 +16,31 @@ export const AppProvider = ({children}: {children: React.ReactNode}) => {
     const [allActivityLogs, setAllActivityLogs] = useState<ActivityEntry[]>([]);
 
     const signup = async (credentials: Credentials) => {
-        const {data} = await mockApi.auth.register(credentials);
+        const { data } = await mockApi.auth.register(credentials);
         setUser(data.user);
-        if(data?.user.age && data?.user?.weight && data?.user?.goal){
+        if (data?.user.age && data?.user?.weight && data?.user?.goal) {
             setOnboardingCompleted(true);
         }
-        localStorage.setItem('token',data.jwt)
+        localStorage.setItem('token', data.jwt)
     }
 
     const login = async (credentials: Credentials) => {
-      const { data } = await mockApi.auth.login(credentials);
-      setUser({...data.user,token:data.jwt});
-      localStorage.setItem('token',data.jwt)
-      if(data?.user.age && data?.user?.weight && data?.user?.goal){
-        setOnboardingCompleted(true);
-      }  
-      localStorage.setItem('token',data.jwt)
+        const { data } = await mockApi.auth.login(credentials);
+        setUser({ ...data.user, token: data.jwt });
+        localStorage.setItem('token', data.jwt)
+        if (data?.user.age && data?.user?.weight && data?.user?.goal) {
+            setOnboardingCompleted(true);
+        }
+        localStorage.setItem('token', data.jwt)
     }
 
-    const fetchUser = async (token: string) => {
+    const fetchUser = async (_token: string) => {
         const { data } = await mockApi.user.me()
-        setUser({...data.user})
-        if(data?.age && data?.weight && data?.goal){
-            setOnboardingCompleted(true);
+        if (data?.user) {
+            setUser({ ...data.user })
+            if (data.user?.age && data.user?.weight && data.user?.goal) {
+                setOnboardingCompleted(true);
+            }
         }
         setIsUserFetched(true)
     }
@@ -62,11 +64,13 @@ export const AppProvider = ({children}: {children: React.ReactNode}) => {
 
     useEffect(() => {
         const token = localStorage.getItem('token') || ''
-        if(token){
-          (async ()=> { fetchUser(token)
-            fetchFoodLogs()
-            fetchActivityLogs()})()
-        }else{
+        if (token) {
+            (async () => {
+                fetchUser(token)
+                fetchFoodLogs()
+                fetchActivityLogs()
+            })()
+        } else {
             setIsUserFetched(true)
         }
     }, [])
@@ -78,7 +82,7 @@ export const AppProvider = ({children}: {children: React.ReactNode}) => {
         logout,
         signup,
         fetchUser,
-        // isUserFetched,
+        isUserFetched,
         onboardingCompleted,
         setOnboardingCompleted,
         allFoodLogs,

@@ -4,8 +4,9 @@ import Layout from './pages/Layout'
 import ActivityLog from './pages/ActivityLog'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
+import Foodlog from './pages/Foodlog'
 import { useAppContext } from './contexts/AppContext'
-import Login from './pages/Login'
+import Login from './pages/login'
 
 const App = () => {
 
@@ -18,11 +19,12 @@ const App = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Layout />} />
-        <Route index element={<Dashboard />} />
-        <Route path='food' element={<Dashboard />} />
-        <Route path='activity' element={<ActivityLog />} />
-        <Route path='profile' element={<Profile />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path='food' element={<Foodlog />} />
+          <Route path='activity' element={<ActivityLog />} />
+          <Route path='profile' element={<Profile />} />
+        </Route>
       </Routes>
     </>
   )
