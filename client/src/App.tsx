@@ -8,6 +8,8 @@ import Foodlog from './pages/Foodlog'
 import { useAppContext } from './contexts/AppContext'
 import Loading from './components/Loading'
 import Login from './pages/Login'
+import Onboarding from './pages/Onboarding'
+import { Toaster } from 'react-hot-toast'
 
 const App = () => {
 
@@ -17,8 +19,13 @@ const App = () => {
     return isUserFetched ? <Login /> : <Loading/>
   }
 
+  if(!onboardingCompleted){
+    return <Onboarding />
+  }
+
   return (
     <>
+    <Toaster/>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />

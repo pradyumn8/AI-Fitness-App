@@ -81,7 +81,7 @@ const mockApi = {
         me: async () => {
             await delay(300);
             const db = getDB();
-            return { data: db.user || dummyUser };
+            return { data: { user: db.user || dummyUser } };
         },
         update: async (_id: string, updates: Partial<UserData>) => {
             await delay(300);
