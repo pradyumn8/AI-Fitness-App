@@ -5,6 +5,7 @@ import type { ActivityEntry, FoodEntry } from '../types'
 import Card from '../components/ui/Card'
 import ProgressBar from '../components/ui/ProgressBar'
 import { ActivityIcon, FlameIcon, UtensilsCrossed, Ruler, ScaleIcon, TrendingUpIcon, ZapIcon } from 'lucide-react'
+import CaloriesChart from '../assets/CaloriesChart'
 
 const Dashboard = () => {
 
@@ -248,6 +249,12 @@ const Dashboard = () => {
               <span className='font-semibold text-slate-700 dark:text-slate-200'>{totalActiveMinutes} min</span>
             </div>
           </div>
+        </Card>
+
+        {/* Activity & Intake Graph */}
+        <Card className='col-span-2'>
+          <h3 className='font-semibold text-slate-800 dark:text-white mb-2'>This Week's Progress</h3>
+          <CaloriesChart/>
         </Card>
       </div>
     </div>
