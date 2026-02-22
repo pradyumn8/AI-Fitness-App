@@ -22,6 +22,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             setOnboardingCompleted(true);
         }
         localStorage.setItem('token', data.jwt)
+        await fetchFoodLogs();
+        await fetchActivityLogs();
     }
 
     const login = async (credentials: Credentials) => {
@@ -32,6 +34,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             setOnboardingCompleted(true);
         }
         localStorage.setItem('token', data.jwt)
+        await fetchFoodLogs();
+        await fetchActivityLogs();
     }
 
     const fetchUser = async (_token: string) => {

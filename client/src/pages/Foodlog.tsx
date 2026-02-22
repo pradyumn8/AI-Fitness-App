@@ -1,20 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useAppContext } from '../contexts/AppContext'
-import type { FoodEntry } from '../types';
+import type { FoodEntry, FormData as FoodFormData } from '../types';
 import Card from '../components/ui/Card';
-import { mealTypeOptions, quickActivitiesFoodLog } from '../assets/assets';
-import { Loader2Icon, PlusIcon, SparkleIcon, UtensilsCrossed } from 'lucide-react';
+import { mealColors, mealIcons, mealTypeOptions, quickActivitiesFoodLog } from '../assets/assets';
+import { Loader2Icon, PlusIcon, SparkleIcon, Trash2Icon, UtensilsCrossed } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import mockApi from '../assets/mockApi';
+import toast from 'react-hot-toast';
 
 const Foodlog = () => {
   const { allFoodLogs, setAllFoodLogs } = useAppContext()
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FoodFormData>({
     name: '',
     calories: 0,
     mealType: '',
@@ -29,13 +30,35 @@ const Foodlog = () => {
     setEntries(todayEntries);
   }
 
-  const handleSubmit = async (e: React.FormEvent)=>{
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const {data}=await mockApi.foodLogs.create({data: formData})
-    setAllFoodLogs(prev => [...prev])
+    const { data } = await mockApi.foodLogs.create({ data: formData })
+    setAllFoodLogs(prev => [...prev, data])
+    setFormData({ name: '', calories: 0, mealType: '' })
+    setShowForm(false)
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const confirm = window.confirm('Are you sure you want to delete this food entry?');
+      if (!confirm) return;
+      await mockApi.foodLogs.delete(id);
+      setAllFoodLogs(prev => prev.filter(entry => entry.documentId !== id));
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete food entry');
+    }
   }
 
   const totalCalories = entries.reduce((sum, entry) => sum + entry.calories, 0);
+
+  // Group entries by meal type
+  const groupedEntries: Record<'breakfast' | 'lunch' | 'dinner' | 'snack', FoodEntry[]> =
+    entries.reduce((acc, entry) => {
+      if (!acc[entry.mealType]) acc[entry.mealType] = [];
+      acc[entry.mealType].push(entry)
+      return acc;
+    }, {} as Record<'breakfast' | 'lunch' | 'dinner' | 'snack', FoodEntry[]>)
+
 
   const handleQuickAdd = (activityName: string) => {
     setFormData({
@@ -43,6 +66,12 @@ const Foodlog = () => {
     });
     setShowForm(true);
   }
+
+const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  // Implement image analysis
+}
 
   useEffect(() => {
     (() => { loadEntries(); })();
@@ -72,7 +101,7 @@ const Foodlog = () => {
               <h3 className="font-semibold text-slate-700 dark:text-slate-200 mb-3">Quick Add</h3>
               <div className='flex flex-wrap gap-2'>
                 {quickActivitiesFoodLog.map((activity) => (
-                  <button onClick={()=>handleQuickAdd(activity.name)} key={activity.name} className='px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors'>
+                  <button onClick={() => handleQuickAdd(activity.name)} key={activity.name} className='px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors'>
                     {activity.emoji}
                     {activity.name}
                   </button>
@@ -80,19 +109,19 @@ const Foodlog = () => {
               </div>
             </Card>
 
-            <Button className='w-full' onClick={()=>setShowForm(true)}>
-              <PlusIcon className='size-5'/>
+            <Button className='w-full' onClick={() => setShowForm(true)}>
+              <PlusIcon className='size-5' />
               Add Custom Food
             </Button>
 
-            <Button className='w-full' onClick={()=>inputRef.current?.click()}>
-              <SparkleIcon className='size-5'/>
+            <Button className='w-full' onClick={() => inputRef.current?.click()}>
+              <SparkleIcon className='size-5' />
               AI Food Snap
             </Button>
-            <input type="file" accept='image/*' hidden ref={inputRef} />
+            <input onChange={handleImageChange} type="file" accept='image/*' hidden ref={inputRef} />
             {loading && (
               <div className='fixed inset-0 bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur flex items-center justify-center z-100'>
-                <Loader2Icon className='size-8 text-emerabld-600 dark:text-emerald-400 animate-spin'/>
+                <Loader2Icon className='size-8 text-emerabld-600 dark:text-emerald-400 animate-spin' />
               </div>
             )}
           </div>
@@ -103,31 +132,91 @@ const Foodlog = () => {
           <Card className='border-2 border-emerald-200 dark:border-emerald-800'>
             <h3 className='font-semibold text-slate-800 dark:text-white mb-4'>New Food Entry</h3>
             <form className="space-y-4" onSubmit={handleSubmit}>
-              <Input label='Food Name' value={formData.name} onChange={(e)=>setFormData({...formData, name: e.toString()})} placeholder='e.g., Grilled Chicken Salad' required/>
+              <Input label='Food Name' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.toString() })} placeholder='e.g., Grilled Chicken Salad' required />
 
-              <Input label='Calories' value={formData.calories} onChange={(e)=>setFormData({...formData, calories: Number(e)})} placeholder='e.g., 350' type='number' required min={1}/>
+              <Input label='Calories' value={formData.calories} onChange={(e) => setFormData({ ...formData, calories: Number(e) })} placeholder='e.g., 350' type='number' required min={1} />
 
-              <Select label='Meal Type' value={formData.mealType} onChange={(e)=>setFormData({...formData, mealType: e.toString()})} placeholder='e.g., Breakfast' options={mealTypeOptions} required/>
+              <Select label='Meal Type' value={formData.mealType} onChange={(e) => setFormData({ ...formData, mealType: e.toString() })} placeholder='e.g., Breakfast' options={mealTypeOptions} required />
 
               <div className='flex gap-3 pt-2'>
-              <Button className='flex-1' type='button' variant='secondary' onClick={()=>{setShowForm(false); setFormData({
-                name: '',
-                calories: 0,
-                mealType: ''
-              })}}>
-                Cancel
-              </Button>
+                <Button className='flex-1' type='button' variant='secondary' onClick={() => {
+                  setShowForm(false); setFormData({
+                    name: '',
+                    calories: 0,
+                    mealType: ''
+                  })
+                }}>
+                  Cancel
+                </Button>
 
 
-              <Button type='submit' className='flex-1'>
-                Add Entry
-              </Button>
+                <Button type='submit' className='flex-1'>
+                  Add Entry
+                </Button>
               </div>
             </form>
-                
+
           </Card>
         )
         }
+
+        {/* Entries list */}
+
+        {entries.length === 0 ? (
+          <Card className='text-center py-12'>
+            <div className='w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4'>
+              <UtensilsCrossed className='size-8 text-slate-400 dark:text-slate-500' />
+            </div>
+            <h3 className='text-xl font-semibold text-slate-800 dark:text-white mb-2'>No Food Entries Yet</h3>
+            <p className='text-slate-500 dark:text-slate-400 text-sm'>Start tracking your meals to see your progress here.</p>
+          </Card>
+        ) : (
+          <div className='space-y-4'>
+            {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => {
+              const mealTypeKey = mealType as keyof typeof groupedEntries;
+              if (!groupedEntries[mealTypeKey]) return null;
+
+              const MealIcon = mealIcons[mealTypeKey];
+              const mealEntries = groupedEntries[mealTypeKey];
+              const totalMealCalories = mealEntries.reduce((sum, entry) => sum + entry.calories, 0);
+
+              return (
+                <Card key={mealType}>
+                  <div className='flex items-center justify-between mb-4'>
+                    <div className='flex items-center gap-3'>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mealColors[mealTypeKey]}`}>
+                        <MealIcon className='size-5 text-emerald-600 dark:text-emerald-400' />
+                      </div>
+                      <div>
+                        <h3 className='font-semibold text-slate-800 dark:text-white capitalize'>{mealType}</h3>
+                        <p className='text-sm text-slate-500 dark:text-slate-400'>{mealEntries.length} items</p>
+                      </div>
+                    </div>
+                    <p className='font-semibold text-slate-700 dark:text-slate-200'>{totalMealCalories} kcal</p>
+                  </div>
+                  <div className='space-y-2'>
+                    {groupedEntries[mealTypeKey].map((entry) => (
+                      <div key={entry.id} className='food-entry-item'>
+                        <div className="flex-1">
+                          <p className='font-medium text-slate-700 dark:text-slate-200'>{entry.name}</p>
+                          <p className='text-sm text-slate-400'>{}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className='text-sm font-medium text-slate-600 dark:text-slate-300'>{entry.calories} kcal</span>
+                          <button
+                          onClick={()=>handleDelete(entry?.documentId || '')}
+                          className='p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'>
+                            <Trash2Icon className='w-4 h-4' />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
