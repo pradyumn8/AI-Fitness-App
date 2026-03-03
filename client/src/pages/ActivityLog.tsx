@@ -3,7 +3,7 @@ import { useAppContext } from '../contexts/AppContext'
 import type { ActivityEntry } from '../types'
 import { quickActivities } from '../assets/assets'
 import Card from '../components/ui/Card'
-import { DumbbellIcon, PlusIcon } from 'lucide-react'
+import { ActivityIcon, DumbbellIcon, PlusIcon, TimerIcon, Trash2Icon } from 'lucide-react'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import mockApi from '../assets/mockApi'
@@ -71,85 +71,127 @@ const ActivityLog = () => {
     })
   }
 
+  const handleDelete = async (documentId: string)=>{
 
-const totalMinutes: number = activities.reduce((sum, activity) => sum + activity.duration, 0)
+  }
 
-return (
-  <div className='page-container'>
-    {/* Header */}
-    <div className='page-header'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold text-slate-800 dark:text-white'>Activity Log</h1>
-          <p className='text-slate-500 dark:text-slate-400 text-sm mt-1'>Track your daily food intake</p>
-        </div>
-        <div className="text-right">
-          <p className='text-sm text-slate-500 dark:text-slate-400'>Active Today</p>
-          <p className='text-xl font-bold text-blue-600 dark:text-blue-400'>{totalMinutes} mins</p>
+  const totalMinutes: number = activities.reduce((sum, activity) => sum + activity.duration, 0)
+
+  return (
+    <div className='page-container'>
+      {/* Header */}
+      <div className='page-header'>
+        <div className='flex items-center justify-between'>
+          <div>
+            <h1 className='text-2xl font-bold text-slate-800 dark:text-white'>Activity Log</h1>
+            <p className='text-slate-500 dark:text-slate-400 text-sm mt-1'>Track your daily food intake</p>
+          </div>
+          <div className="text-right">
+            <p className='text-sm text-slate-500 dark:text-slate-400'>Active Today</p>
+            <p className='text-xl font-bold text-blue-600 dark:text-blue-400'>{totalMinutes} mins</p>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div className='page-content-grid'>
-      {/* Quick Add Section */}
-      {!showForm && (
-        <div className='space-y-4'>
-          <Card>
-            <h3 className='font-semibold text-slate-700 dark:text-slate-200 mb-3'>Quick Add</h3>
-            <div className='flex gap-2 flex-wrap'>
-              {quickActivities.map((activity) => (
-                <button onClick={() => handleQuickAdd(activity)} key={activity.name} className='px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium text-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors'>
-                  {activity.emoji}
-                  {activity.name}
-                </button>
-              ))}
-            </div>
-          </Card>
-          <Button onClick={() => setShowForm(true)} className='w-full '>
-            <PlusIcon className='size-5' />
-            Add Custom Activity
-          </Button>
-        </div>
-      )}
-      {/* Add Form */}
-      {showForm && (
-        <Card className='border-2 border-blue-200 dark:border-blue-800'>
-          <h3 className='font-semibold text-slate-800 dark:text-white mb-3'>New Activity Entry</h3>
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <Input label='Activity Name' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.toString() })} placeholder='e.g., Morning Run' required />
-
-            <div className='flex gap-4'>
-              <Input label='Duration (minutes)' value={formData.duration} placeholder='e.g., 30' type='number' required min={1} max={300} onChange={handleDurationChange}/>
-
-              <Input label='Calories Burned' value={formData.calories} onChange={(e) => setFormData({ ...formData, calories: Number(e) })} placeholder='e.g., 150' type='number' required min={1} />
-            </div>
-            {error && <p className='text-red-500 text-sm'>{error}</p>}
-            
-            <div className='flex gap-3 pt-2'>
-              <Button variant='secondary' type='button' onClick={() => setShowForm(false)}>Cancel</Button>
-              <Button type='submit'>Add Activity</Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {/* Activities List */}
-      {activities.length === 0 ? (
-        <Card className='text-center py-12'>
-          <div>
-            <DumbbellIcon className='w-8 h-8 text-slate-400 dark:text-slate-500 mx-auto mb-4' />
+      <div className='page-content-grid'>
+        {/* Quick Add Section */}
+        {!showForm && (
+          <div className='space-y-4'>
+            <Card>
+              <h3 className='font-semibold text-slate-700 dark:text-slate-200 mb-3'>Quick Add</h3>
+              <div className='flex gap-2 flex-wrap'>
+                {quickActivities.map((activity) => (
+                  <button onClick={() => handleQuickAdd(activity)} key={activity.name} className='px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-medium text-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors'>
+                    {activity.emoji}
+                    {activity.name}
+                  </button>
+                ))}
+              </div>
+            </Card>
+            <Button onClick={() => setShowForm(true)} className='w-full '>
+              <PlusIcon className='size-5' />
+              Add Custom Activity
+            </Button>
           </div>
-          <h3 className='text-slate-800 dark:text-white font-semibold mb-2'>No Activities Yet</h3>
-          <p className='text-slate-500 dark:text-slate-400 text-sm'>Get started by adding your first activity</p>
-        </Card>
-      ):(
-        <Card>
+        )}
+        {/* Add Form */}
+        {showForm && (
+          <Card className='border-2 border-blue-200 dark:border-blue-800'>
+            <h3 className='font-semibold text-slate-800 dark:text-white mb-3'>New Activity Entry</h3>
+            <form onSubmit={handleSubmit} className='space-y-4'>
+              <Input label='Activity Name' value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.toString() })} placeholder='e.g., Morning Run' required />
 
-        </Card>
-      )}
+              <div className='flex gap-4'>
+                <Input label='Duration (minutes)' value={formData.duration} placeholder='e.g., 30' type='number' required min={1} max={300} onChange={handleDurationChange} />
+
+                <Input label='Calories Burned' value={formData.calories} onChange={(e) => setFormData({ ...formData, calories: Number(e) })} placeholder='e.g., 150' type='number' required min={1} />
+              </div>
+              {error && <p className='text-red-500 text-sm'>{error}</p>}
+
+              <div className='flex gap-3 pt-2'>
+                <Button variant='secondary' type='button' onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type='submit'>Add Activity</Button>
+              </div>
+            </form>
+          </Card>
+        )}
+
+        {/* Activities List */}
+        {activities.length === 0 ? (
+          <Card className='text-center py-12'>
+            <div>
+              <DumbbellIcon className='w-8 h-8 text-slate-400 dark:text-slate-500 mx-auto mb-4' />
+            </div>
+            <h3 className='text-slate-800 dark:text-white font-semibold mb-2'>No Activities Yet</h3>
+            <p className='text-slate-500 dark:text-slate-400 text-sm'>Get started by adding your first activity</p>
+          </Card>
+        ) : (
+          <Card>
+            <div className='flex items-center gap-3 mb-4'>
+              <div className='w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center'>
+                <ActivityIcon className='size-5 text-blue-600' />
+              </div>
+              <div>
+                <h3>Today's Activities</h3>
+                <p className='text-sm text-slate-500 dark:text-slate-400'>{activities.length} logged</p>
+              </div>
+            </div>
+
+          <div className='space-y-2'>
+            {activities.map((activity) => (
+              <div key={activity.id} className='activity-entry-item'>
+               <div className='flex items-center gap-3'>
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                  <TimerIcon className='size-5 text-blue-600 dark:text-blue-400' />
+                  </div>
+                <div>
+                  <p className='font-semibold text-slate-800 dark:text-white'>{activity.name} calories</p>
+                  <p className='text-sm text-slate-500 dark:text-slate-400'>{new Date(activity?.createdAt || '').toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+               </div>
+               <div className='flex items-center gap-3'>
+                <div className='text-right'>
+                  <p className='text-sm text-slate-500 dark:text-slate-400'>{activity.duration} minutes</p>
+                  <p className='text-xs text-slate-500 dark:text-slate-400'>{activity.calories} calories</p>
+                </div>
+                <button onClick={() => handleDelete(activity.documentId)} className='p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'>
+                  <Trash2Icon className='size-5 text-red-600' />
+                </button>
+               </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total Summary */}
+          <div className='mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center'>
+            <span className='text-slate-500 dark:text-slate-400'>Total Active Time</span>
+            <span className='text-slate-500 dark:text-slate-400'>{totalMinutes} minutes</span>
+          </div>
+          </Card>
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
 }
 
 export default ActivityLog

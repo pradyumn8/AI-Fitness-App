@@ -80,8 +80,16 @@ const mockApi = {
     user: {
         me: async () => {
             await delay(300);
-            const db = getDB();
-            return { data: { user: db.user || dummyUser } };
+            let db = getDB();
+            // const db = getDB();
+            // return { data: { user: db.user || dummyUser } };
+            if (!db.user) {
+                db.user = { ...dummyUser };
+                db.foodLogs = [...dummyFoodLogs];
+                db.activityLogs = [...dummyActivityLogs];
+                saveDB(db);
+            }
+            return { data: { user: db.user } };
         },
         update: async (_id: string, updates: Partial<UserData>) => {
             await delay(300);
