@@ -3,7 +3,7 @@ import { useAppContext } from '../contexts/AppContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { ProfileFormData, UserData } from '../types'
 import Card from '../components/ui/Card'
-import { Calendar, Scale, Target, User, } from 'lucide-react'
+import { Calendar, LogOutIcon, MoonIcon, Scale, SunIcon, Target, User, } from 'lucide-react'
 import Button from '../components/ui/Button'
 import { goalLabels, goalOptions } from '../assets/assets'
 import Input from '../components/ui/Input'
@@ -59,9 +59,9 @@ const Profile = () => {
 
   const getStats = () => {
     const totalFoodEntries = allFoodLogs?.length || 0;
-    const totalActivies = allActivityLogs?.length || 0;
+    const totalActivities = allActivityLogs?.length || 0;
 
-    return {totalFoodEntries, totalActivies}
+    return {totalFoodEntries, totalActivities}
   }
   
   const stats = getStats();
@@ -176,19 +176,34 @@ const Profile = () => {
         <div className='space-y-4'>
           {/* stats card */}
           <Card>
-            <h2 className='text-xl font-semibold mb-4'>Your Stats</h2>
+            <h3 className='font-semibold text-slate-800 dark:text-white mb-4'>Your Stats</h3>
             <div className='grid grid-cols-2 gap-4'>
-              <div className='flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg'>
-                <div className='size-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center'>
-                  <Calendar className='size-5 text-blue-600 dark:text-blue-400' />
-                </div>
-                <div>
-                  <p className='text-sm text-slate-500 dark:text-slate-400'>Total Food Entries</p>
-                  <p className='font-medium text-slate-800 dark:text-white'>{stats.totalFoodEntries}</p>
-                </div>
+              <div className='text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg'>
+                <p className='text-2xl font-bold text-emerald-600 dark:text-emerald-400'>{stats.totalFoodEntries}</p>
+                <p className='text-sm text-slate-500 dark:text-slate-400'>Food Entries</p>
               </div>
+            <div className='text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl'>
+              <p className='text-2xl font-bold text-blue-600 dark:text-blue-400'>{stats.totalActivities}</p>
+              <p className='text-sm text-slate-500 dark:text-slate-400'>Activities</p>
+            </div>
             </div>
           </Card>
+
+          {/* toggle theme btn for phone */}
+          <div className='lg:hidden'>
+            <button 
+            onClick={toggleTheme}
+            className='flex items-center gap-3 px-4 py-2.5 w-full text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg transition-colors duration-200 cursor-pointer'>
+              {theme === 'light' ? <MoonIcon className='size-5'/> : <SunIcon className='size-5'/>}
+              <span className='text-base'>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            </button>
+          </div>
+
+          {/* Logout Button */}
+          <Button variant='danger' onClick={logout} className='w-full ring ring-red-300 hover:ring-2'>
+            <LogOutIcon className='size-4'/>
+            <span>Logout</span>
+          </Button>
         </div>
       </div>
     </div>
