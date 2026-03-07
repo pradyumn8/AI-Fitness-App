@@ -37,7 +37,7 @@ const Foodlog = () => {
       return toast('Please fill all fields')
     }
     try {
-      const { data } = await api.post('/api/food-logs', { data: formData })
+      const { data } = await api.post('/api/foodlogs', { data: formData })
       setAllFoodLogs(prev => [...prev, data])
       setFormData({ name: '', calories: 0, mealType: '' })
       setShowForm(false)
@@ -51,7 +51,7 @@ const Foodlog = () => {
     try {
       const confirm = window.confirm('Are you sure you want to delete this food entry?');
       if (!confirm) return;
-      await api.delete(`/api/food-logs/${documentId}`)
+      await api.delete(`/api/foodlogs/${documentId}`)
       setAllFoodLogs(prev => prev.filter(entry => entry.documentId !== documentId));
     } catch (error: any) {
       toast.error(error?.response?.data?.error?.message || error?.message)
@@ -81,41 +81,41 @@ const Foodlog = () => {
     if (!file) return;
     setLoading(true)
     const formData = new FormData();
-    formData.append('image',file)
+    formData.append('image', file)
     try {
-      const {data}=await api.post('/api/image-analysis', formData);
+      const { data } = await api.post('/api/image-analysis', formData);
       const result = data.result;
       let mealType = '';
 
       const hour = new Date().getHours()
-      if(hour >= 0 && hour < 12){
+      if (hour >= 0 && hour < 12) {
         mealType = 'breakfast';
-      }else if(hour >= 12 && hour < 16){
+      } else if (hour >= 12 && hour < 16) {
         mealType = 'lunch';
-      }else if(hour >= 16 && hour < 18){
+      } else if (hour >= 16 && hour < 18) {
         mealType = 'snack'
-      }else if(hour >= 18 && hour < 24){
+      } else if (hour >= 18 && hour < 24) {
         mealType = 'dinner'
       }
 
-      if(!mealType || !result.name || !result.calories){
+      if (!mealType || !result.name || !result.calories) {
         return toast.error('Missing data')
       }
 
       // save the result to the database
 
-      const {data: newEntry} = await api.post('/api/food-logs', {data:{name: result.name, calories: result.calories, mealType}})
-      setEntries([...entries,newEntry])
-      setAllFoodLogs(prev => [...prev,newEntry])
+      const { data: newEntry } = await api.post('/api/foodlogs', { data: { name: result.name, calories: result.calories, mealType } })
+      setEntries([...entries, newEntry])
+      setAllFoodLogs(prev => [...prev, newEntry])
 
       // reset input
-      if(inputRef.current){
-        inputRef.current.value= ''
+      if (inputRef.current) {
+        inputRef.current.value = ''
       }
-    } catch (error:any) {
+    } catch (error: any) {
       console.log(error);
       toast.error(error?.response?.data?.error?.message || error?.message);
-    } finally{
+    } finally {
       setLoading(false);
     }
   }

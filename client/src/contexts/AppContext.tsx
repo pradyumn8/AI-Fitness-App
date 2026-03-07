@@ -27,6 +27,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             }
             localStorage.setItem('token', data.jwt)
             api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
+            await fetchFoodLogs(data.jwt);
+            await fetchActivityLogs(data.jwt);
         } catch (error: any) {
             console.log(error);
             toast.error(error?.response?.data?.error?.message || error?.message);
@@ -42,8 +44,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             if (data?.user.age && data?.user?.weight && data?.user?.goal) {
                 setOnboardingCompleted(true);
             }
-            localStorage.setItem('token', data.jwt)
-
+            api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
+            await fetchFoodLogs(data.jwt);
+            await fetchActivityLogs(data.jwt);
         } catch (error: any) {
             console.log(error);
             toast.error(error?.response?.data?.error?.message || error?.message);
@@ -55,7 +58,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const { data } = await api.get('/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
 
-            setUser({ ...data.user })
+            setUser({ ...data, token })
             if (data?.age && data?.weight && data?.goal) {
                 setOnboardingCompleted(true);
             }
@@ -70,12 +73,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const fetchFoodLogs = async (token: string) => {
         try {
-            const { data } = await api.get('/api/food-logs', {
+            const { data } = await api.get('/api/foodlogs', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             })
-            setAllActivityLogs(data)
+            setAllFoodLogs(data)
 
         } catch (error: any) {
             console.log(error);
@@ -92,9 +95,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             })
             setAllActivityLogs(data)
 
-        } catch (error) {
+        } catch (error: any) {
             console.log(error);
-            toast.error(error?.response?.data?.error?.message || error?.message || error?.message)
+            toast.error(error?.response?.data?.error?.message || error?.message)
         }
     }
 

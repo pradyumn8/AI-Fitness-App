@@ -42,7 +42,7 @@ const ActivityLog = () => {
       return toast('Please fill in all fields')
     }
     try {
-      const { data } = await api.post('/api/activity-logs', {})
+      const { data } = await api.post('/api/activity-logs', { data: formData })
 
       setAllActivityLogs(prev => [...prev, data])
       setFormData({ name: '', duration: 0, calories: 0 })
