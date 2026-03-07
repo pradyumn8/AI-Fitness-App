@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useAppContext } from '../contexts/AppContext'
 import { useTheme } from '../contexts/ThemeContext'
-import type { ProfileFormData, UserData } from '../types'
+import type { ProfileFormData } from '../types'
 import Card from '../components/ui/Card'
 import { Calendar, LogOutIcon, MoonIcon, Scale, SunIcon, Target, User, } from 'lucide-react'
 import Button from '../components/ui/Button'
 import { goalLabels, goalOptions } from '../assets/assets'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
-import mockApi from '../assets/mockApi'
 import toast from 'react-hot-toast'
+import api from '../configs/api'
 
 const Profile = () => {
   const { user, logout, fetchUser, allFoodLogs, allActivityLogs } = useAppContext()
@@ -42,12 +42,7 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      // Mock API Update
-      const updates: Partial<UserData> = {
-        ...formData,
-        goal: formData.goal as 'lose' | 'gain' | 'maintain'
-      };
-      await mockApi.user.update(user?.id || '', updates)
+      await api.put(`/api/users/${user?.id}`, formData)
       await fetchUser(user?.token || '')
       toast.success('Profile updated successfully')
     } catch (error: any) {
@@ -61,9 +56,9 @@ const Profile = () => {
     const totalFoodEntries = allFoodLogs?.length || 0;
     const totalActivities = allActivityLogs?.length || 0;
 
-    return {totalFoodEntries, totalActivities}
+    return { totalFoodEntries, totalActivities }
   }
-  
+
   const stats = getStats();
 
   if (!user || !formData) return null
@@ -182,26 +177,26 @@ const Profile = () => {
                 <p className='text-2xl font-bold text-emerald-600 dark:text-emerald-400'>{stats.totalFoodEntries}</p>
                 <p className='text-sm text-slate-500 dark:text-slate-400'>Food Entries</p>
               </div>
-            <div className='text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl'>
-              <p className='text-2xl font-bold text-blue-600 dark:text-blue-400'>{stats.totalActivities}</p>
-              <p className='text-sm text-slate-500 dark:text-slate-400'>Activities</p>
-            </div>
+              <div className='text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl'>
+                <p className='text-2xl font-bold text-blue-600 dark:text-blue-400'>{stats.totalActivities}</p>
+                <p className='text-sm text-slate-500 dark:text-slate-400'>Activities</p>
+              </div>
             </div>
           </Card>
 
           {/* toggle theme btn for phone */}
           <div className='lg:hidden'>
-            <button 
-            onClick={toggleTheme}
-            className='flex items-center gap-3 px-4 py-2.5 w-full text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg transition-colors duration-200 cursor-pointer'>
-              {theme === 'light' ? <MoonIcon className='size-5'/> : <SunIcon className='size-5'/>}
+            <button
+              onClick={toggleTheme}
+              className='flex items-center gap-3 px-4 py-2.5 w-full text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg transition-colors duration-200 cursor-pointer'>
+              {theme === 'light' ? <MoonIcon className='size-5' /> : <SunIcon className='size-5' />}
               <span className='text-base'>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
             </button>
           </div>
 
           {/* Logout Button */}
           <Button variant='danger' onClick={logout} className='w-full ring ring-red-300 hover:ring-2'>
-            <LogOutIcon className='size-4'/>
+            <LogOutIcon className='size-4' />
             <span>Logout</span>
           </Button>
         </div>

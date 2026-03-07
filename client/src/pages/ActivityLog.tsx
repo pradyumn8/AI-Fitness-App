@@ -6,7 +6,8 @@ import Card from '../components/ui/Card'
 import { ActivityIcon, DumbbellIcon, PlusIcon, TimerIcon, Trash2Icon } from 'lucide-react'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
-import mockApi from '../assets/mockApi'
+import toast from 'react-hot-toast'
+import api from '../configs/api'
 
 const ActivityLog = () => {
 
@@ -38,13 +39,18 @@ const ActivityLog = () => {
     e.preventDefault()
     setError('')
     if (!formData.name || !formData.duration || !formData.calories) {
-      setError('Please fill in all fields')
-      return
+      return toast('Please fill in all fields')
     }
-    const { data } = await mockApi.activityLogs.create({ data: formData })
-    setAllActivityLogs(prev => [...prev, data])
-    setFormData({ name: '', duration: 0, calories: 0 })
-    setShowForm(false)
+    try {
+      const { data } = await api.post('/api/activity-logs', {})
+
+      setAllActivityLogs(prev => [...prev, data])
+      setFormData({ name: '', duration: 0, calories: 0 })
+      setShowForm(false)
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.response?.data?.error?.message || error?.message)
+    }
   }
 
   const handleQuickAdd = (activity: { name: string, rate: number }) => {
@@ -71,8 +77,16 @@ const ActivityLog = () => {
     })
   }
 
-  const handleDelete = async (documentId: string)=>{
-
+  const handleDelete = async (documentId: string) => {
+    try {
+      const confirm = window.confirm('Are you sure you want to delete this entry?')
+      if (!confirm) return;
+      await api.delete(`/api/activity-logs/${documentId}`);
+      setAllActivityLogs(prev => prev.filter((a) => a.documentId !== documentId))
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error?.response?.data?.error?.message || error?.message);
+    }
   }
 
   const totalMinutes: number = activities.reduce((sum, activity) => sum + activity.duration, 0)
@@ -157,36 +171,36 @@ const ActivityLog = () => {
               </div>
             </div>
 
-          <div className='space-y-2'>
-            {activities.map((activity) => (
-              <div key={activity.id} className='activity-entry-item'>
-               <div className='flex items-center gap-3'>
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                  <TimerIcon className='size-5 text-blue-600 dark:text-blue-400' />
+            <div className='space-y-2'>
+              {activities.map((activity) => (
+                <div key={activity.id} className='activity-entry-item'>
+                  <div className='flex items-center gap-3'>
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                      <TimerIcon className='size-5 text-blue-600 dark:text-blue-400' />
+                    </div>
+                    <div>
+                      <p className='font-semibold text-slate-800 dark:text-white'>{activity.name} calories</p>
+                      <p className='text-sm text-slate-500 dark:text-slate-400'>{new Date(activity?.createdAt || '').toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
                   </div>
-                <div>
-                  <p className='font-semibold text-slate-800 dark:text-white'>{activity.name} calories</p>
-                  <p className='text-sm text-slate-500 dark:text-slate-400'>{new Date(activity?.createdAt || '').toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                  <div className='flex items-center gap-3'>
+                    <div className='text-right'>
+                      <p className='text-sm text-slate-500 dark:text-slate-400'>{activity.duration} minutes</p>
+                      <p className='text-xs text-slate-500 dark:text-slate-400'>{activity.calories} calories</p>
+                    </div>
+                    <button onClick={() => handleDelete(activity.documentId)} className='p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'>
+                      <Trash2Icon className='size-5 text-red-600' />
+                    </button>
+                  </div>
                 </div>
-               </div>
-               <div className='flex items-center gap-3'>
-                <div className='text-right'>
-                  <p className='text-sm text-slate-500 dark:text-slate-400'>{activity.duration} minutes</p>
-                  <p className='text-xs text-slate-500 dark:text-slate-400'>{activity.calories} calories</p>
-                </div>
-                <button onClick={() => handleDelete(activity.documentId)} className='p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors'>
-                  <Trash2Icon className='size-5 text-red-600' />
-                </button>
-               </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Total Summary */}
-          <div className='mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center'>
-            <span className='text-slate-500 dark:text-slate-400'>Total Active Time</span>
-            <span className='text-slate-500 dark:text-slate-400'>{totalMinutes} minutes</span>
-          </div>
+            {/* Total Summary */}
+            <div className='mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center'>
+              <span className='text-slate-500 dark:text-slate-400'>Total Active Time</span>
+              <span className='text-slate-500 dark:text-slate-400'>{totalMinutes} minutes</span>
+            </div>
           </Card>
         )}
       </div>

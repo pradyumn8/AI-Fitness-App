@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { initialState, type ActivityEntry, type Credentials, type FoodEntry, type User } from "../types";
 import { useNavigate } from "react-router-dom";
-import mockApi from "../assets/mockApi";
+import api from "../configs/api";
+import toast from "react-hot-toast";
 
 
 const AppContext = createContext(initialState);
@@ -10,59 +11,98 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const navigate = useNavigate();
     const [user, setUser] = useState<User>(null);
-    const [isUserFetched, setIsUserFetched] = useState(false);
+    const [isUserFetched, setIsUserFetched] = useState(localStorage.getItem('token') ? false : true);
     const [onboardingCompleted, setOnboardingCompleted] = useState(false);
     const [allFoodLogs, setAllFoodLogs] = useState<FoodEntry[]>([]);
     const [allActivityLogs, setAllActivityLogs] = useState<ActivityEntry[]>([]);
 
     const signup = async (credentials: Credentials) => {
-        const { data } = await mockApi.auth.register(credentials);
-        setUser(data.user);
-        if (data?.user.age && data?.user?.weight && data?.user?.goal) {
-            setOnboardingCompleted(true);
+
+        try {
+            const { data } = await api.post('/api/auth/local/register', credentials);
+
+            setUser({ ...data.user, token: data.jwt });
+            if (data?.user.age && data?.user?.weight && data?.user?.goal) {
+                setOnboardingCompleted(true);
+            }
+            localStorage.setItem('token', data.jwt)
+            api.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
+        } catch (error: any) {
+            console.log(error);
+            toast.error(error?.response?.data?.error?.message || error?.message);
         }
-        localStorage.setItem('token', data.jwt)
-        await fetchFoodLogs();
-        await fetchActivityLogs();
     }
 
     const login = async (credentials: Credentials) => {
-        const { data } = await mockApi.auth.login(credentials);
-        setUser({ ...data.user, token: data.jwt });
-        localStorage.setItem('token', data.jwt)
-        if (data?.user.age && data?.user?.weight && data?.user?.goal) {
-            setOnboardingCompleted(true);
-        }
-        localStorage.setItem('token', data.jwt)
-        await fetchFoodLogs();
-        await fetchActivityLogs();
-    }
+        try {
+            const { data } = await api.post('/api/auth/local', { identifier: credentials.email, password: credentials.password });
 
-    const fetchUser = async (_token: string) => {
-        const { data } = await mockApi.user.me()
-        if (data?.user) {
-            setUser({ ...data.user })
-            if (data.user?.age && data.user?.weight && data.user?.goal) {
+            setUser({ ...data.user, token: data.jwt });
+            localStorage.setItem('token', data.jwt)
+            if (data?.user.age && data?.user?.weight && data?.user?.goal) {
                 setOnboardingCompleted(true);
             }
+            localStorage.setItem('token', data.jwt)
+
+        } catch (error: any) {
+            console.log(error);
+            toast.error(error?.response?.data?.error?.message || error?.message);
         }
-        setIsUserFetched(true)
     }
 
-    const fetchFoodLogs = async () => {
-        const { data } = await mockApi.foodLogs.list()
-        setAllFoodLogs(data)
+    const fetchUser = async (token: string) => {
+
+        try {
+            const { data } = await api.get('/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
+
+            setUser({ ...data.user })
+            if (data?.age && data?.weight && data?.goal) {
+                setOnboardingCompleted(true);
+            }
+            // localStorage.setItem('token', data.jwt)
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        } catch (error: any) {
+            console.log(error);
+            toast.error(error?.response?.data?.error?.message || error?.message);
+        }
+        setIsUserFetched(true);
     }
 
-    const fetchActivityLogs = async () => {
-        const { data } = await mockApi.activityLogs.list()
-        setAllActivityLogs(data)
+    const fetchFoodLogs = async (token: string) => {
+        try {
+            const { data } = await api.get('/api/food-logs', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            setAllActivityLogs(data)
+
+        } catch (error: any) {
+            console.log(error);
+            toast.error(error?.response?.data?.error?.message || error?.message)
+        }
+    }
+
+    const fetchActivityLogs = async (token: string) => {
+        try {
+            const { data } = await api.get('/api/activity-logs', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            setAllActivityLogs(data)
+
+        } catch (error) {
+            console.log(error);
+            toast.error(error?.response?.data?.error?.message || error?.message || error?.message)
+        }
     }
 
     const logout = () => {
         localStorage.removeItem('token')
         setUser(null)
         setOnboardingCompleted(false)
+        api.defaults.headers.common['Authorization'] = '';
         navigate('/')
     }
 
@@ -71,11 +111,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         if (token) {
             (async () => {
                 fetchUser(token)
-                fetchFoodLogs()
-                fetchActivityLogs()
+                fetchFoodLogs(token)
+                fetchActivityLogs(token)
             })()
-        } else {
-            setIsUserFetched(true)
         }
     }, [])
 
